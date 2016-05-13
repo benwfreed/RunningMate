@@ -12,6 +12,15 @@
         
         <link rel="stylesheet" href="/vendor/bootstrap/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="/vendor/bootstrap/dist/css/bootstrap-theme.min.css">
+		
+		<script src="/socket.io/socket.io.js"></script>
+		<script>
+		  var socket = io.connect('http://localhost:3000');
+		  socket.on('news', function (data) {
+		    console.log(data);
+		    socket.emit('my other event', { my: 'data' });
+		  });
+		</script>
         
     </head>
     <body>
@@ -19,8 +28,31 @@
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 	    <div class="container">
+		
+		  <div class="header clearfix">
+		    <nav>
+			  <ul class="nav nav-pills pull-right">
+			    {{#if user}}
+				  <li role="presentation"><a href="/logout">Logout</a></li>
+				{{else}}
+				{{/if}}
+			  </ul>
+			</nav>
+		  </div>
         
             <h1>{{title}}</h1>
+			
+			{{#if success_msg}}
+				<div class="alert alert-success">{{success_msg}}</div>
+			{{/if}}
+			
+			{{#if error_msg}}
+				<div class="alert alert-danger">{{error_msg}}</div>
+			{{/if}}
+			
+			{{#if error}}
+				<div class="alert alert-danger">{{error}}</div>
+			{{/if}}
             
 		    {{{body}}}
 

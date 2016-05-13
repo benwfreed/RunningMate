@@ -1,26 +1,25 @@
  
-  <p>Ahoy there, matey.</p>
+  <h4>Ahoy there, {{user.username}}.</h4>
   
   <h3>Find your running mate.</h3>
   <form class ="form-vertical" id="form_add_runner" name="addrunner" method="post" action="/addrunner">
-    <span>leaving in</span>
+    <span>I'm leaving soon and will get back in approximately: </span>
+	<br>
+    <input id="radio_one" type="radio" name="gettingBackIn" value="10"> 10 mins or less<br>
+    <input id="radio_two" type="radio" name="gettingBackIn" value="15"> 15 mins<br>
+    <input id="radio_three" type="radio" name="gettingBackIn" value="30" checked> 30 mins<br>
+    <input id="radio_four" type="radio" name="gettingBackIn" value="45"> 45 mins<br>
+    <input id="radio_five" type="radio" name="gettingBackIn" value="60"> 60 mins or more
+    <br>
+    <br>
+	<span>I'll be running at a:<span><br>
+    <input id="radio_six" type="radio" name="pace" value="leisurely"> leisurely pace<br>
+    <input id="radio_seven" type="radio" name="pace" value="moderate" checked> moderate pace<br>
+    <input id="radio_eight" type="radio" name="pace" value="fast"> fast pace<br>
+	<br>
+    <span>Today, I'm tearing up the streets of </span> 
     <span>&nbsp</span>
-    <input id="input_name" type="text" placeholder="leaving in" name="leavingin">
-    <br>
-    <br>
-    <span>city</span> 
-    <span>&nbsp</span>
-    <input id="input_name" type="text" placeholder="city" name="city">
-    <br>
-    <br>
-    <span>state</span>
-    <span>&nbsp</span>
-    <input id="input_name type="text" placeholder="state" name="state">
-    <br>
-    <br>
-    <span>distance<span>
-    <span>&nbsp</span>
-    <input id="input_name" type="text" placeholder="distance" name="distance">
+    <input id="input_name" type="text" name="city" placeholder="{{user.city}}">
     <br>
     <br>
     <button id="submit_runner" type="submit">Go</button>

@@ -1,4 +1,9 @@
 <h3>Login</h3>
+  {{#if errors}}
+  	{{#each errors}}
+		<div class="alert alert-danger">{{msg}}</div>
+	{{/each}}
+  {{/if}}
   <form class ="form-vertical" id="form_login" name="login" method="post" action="/login">
     <span>username</span>
     <span>&nbsp</span>
@@ -7,25 +12,14 @@
     <br>
     <span>password</span> 
     <span>&nbsp</span>
-    <input id="input_password" type="text" placeholder="password" name="password">
+    <input id="input_password" type="password" placeholder="password" name="password">
     <br>
     <br>
     <button id="submit_login" type="submit">Go</button>
+	<br>
+	<br>
   </form>
   
-<h3>Register</h3>
-  <form class ="form-vertical" id="form_register" name="register" method="post" action="/register">
-    <span>username</span>
-    <span>&nbsp</span>
-    <input id="input_newusername" type="text" placeholder="username" name="newusername">
-    <br>
-    <br>
-    <span>password</span> 
-    <span>&nbsp</span>
-    <input id="input_newpassword" type="text" placeholder="password" name="newpassword">
-    <br>
-    <br>
-    <button id="submit_register" type="submit">Go</button>
-  </form>
+<span>Don't have an account? Register <a href="register">here</a></span>
   
   

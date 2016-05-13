@@ -1,0 +1,33 @@
+<h3>Register</h3>
+  {{#if errors}}
+  	{{#each errors}}
+	  <div class="alert alert-danger">{{msg}}</div>
+	{{/each}}
+  {{/if}}
+  <form class ="form-vertical" id="form_register" name="register" method="post" action="/register">
+    <span>username</span>
+    <span>&nbsp</span>
+    <input id="input_newusername" type="text" placeholder="username" name="newusername">
+    <br>
+    <br>
+    <span>password</span> 
+    <span>&nbsp</span>
+    <input id="input_newpassword" type="password" placeholder="password" name="newpassword">
+    <br>
+    <br>
+    <span>city</span> 
+    <span>&nbsp</span>
+    <input id="input_city" type="text" placeholder="city" name="city">
+    <br>
+    <br>
+    <span>state</span> 
+    <span>&nbsp</span>
+    <input id="input_email" type="text" placeholder="state" name="state">
+    <br>
+    <br>
+    <button id="submit_register" type="submit">Go</button>
+	<br>
+	<br>
+  </form>
+
+  <span>Already have an account? Login <a href="login">here</a></span>
