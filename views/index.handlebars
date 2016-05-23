@@ -2,8 +2,13 @@
   <h4>Ahoy there, {{user.username}}.</h4>
   
   <h3>Find your running mate.</h3>
-  <form class ="form-vertical" id="form_add_runner" name="addrunner" method="post" action="/addrunner">
-    <span>I'm leaving soon and will get back in approximately: </span>
+  <form class ="form-vertical" id="addrunner" name="addrunner" method="post" action="/addrunner">
+    <span>Today, I'm tearing up the streets of: </span> 
+    <br>
+    <input id="input_name" type="text" name="city" placeholder="{{user.city}}">
+    <br>
+    <br>
+    <span>I'm starting my run soon and will get back in approximately: </span>
 	<br>
     <input id="radio_one" type="radio" name="gettingBackIn" value="10"> 10 mins or less<br>
     <input id="radio_two" type="radio" name="gettingBackIn" value="15"> 15 mins<br>
@@ -12,15 +17,26 @@
     <input id="radio_five" type="radio" name="gettingBackIn" value="60"> 60 mins or more
     <br>
     <br>
+	<span>I'm aiming for a distance of approximately:<span><br>
+    <input id="radio_nine" type="radio" name="distance" value="1 mile / 1.6 km"> 1 mile / 1.6 km or less<br>
+    <input id="radio_ten" type="radio" name="distance" value="3 miles / 4.8 km"> 3 miles / 4.8 km<br>
+    <input id="radio_eleven" type="radio" name="distance" value="5 miles / 8 km" checked> 5 miles / 8 km<br>
+	<input id="radio_twelve" type="radio" name="distance" value="7 miles / 11.3 km"> 7 miles / 11.3 km<br>
+	<input id="radio_thirteen" type="radio" name="distance" value="9 miles / 14.5"> 9 miles / 14.5 km or more<br>
+	<input type="radio" name="distance" value="other"> No clue
+	<br>
+	<br>
+	<span>Notes:</span>
+	<br>
+    <textarea id="notes" type="text" form="addrunner" name="notes" placeholder="More Info to Share"></textarea>
+    <br>
+    <br>
+	{{!
 	<span>I'll be running at a:<span><br>
     <input id="radio_six" type="radio" name="pace" value="leisurely"> leisurely pace<br>
     <input id="radio_seven" type="radio" name="pace" value="moderate" checked> moderate pace<br>
     <input id="radio_eight" type="radio" name="pace" value="fast"> fast pace<br>
 	<br>
-    <span>Today, I'm tearing up the streets of </span> 
-    <span>&nbsp</span>
-    <input id="input_name" type="text" name="city" placeholder="{{user.city}}">
-    <br>
-    <br>
+	}}
     <button id="submit_runner" type="submit">Go</button>
   </form>

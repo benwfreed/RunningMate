@@ -21,7 +21,22 @@ module.exports.makeMate = function(mate, callback) {
 };
 
 module.exports.getMate = function(username, callback) {
-	Mate.findOne({ $or: [ {'mate1': username}, {'mate2': username}] }, callback);
+	Mate.findOne({ $or: [ {'mate1': username}, {'mate2': username}] }, function(err, result) {
+		if (err) {console.log(err);}
+		else {
+			if (err) {
+				console.log(err);
+			}
+			console.log(result);
+			if (result){
+				var themate = result.mate1;
+				console.log(themate);
+				if (themate == username) {
+					themate = result.mate2;
+				}
+			}
+		}
+		if (callback) {callback(themate)};
+	});
 };
 
-//

@@ -6,8 +6,9 @@ var passport = require('passport');
 var expressValidator = require('express-validator');
 var LocalStrategy = require('passport-local').Strategy;
 var flash = require('connect-flash');
-
-
+var app = express();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 Runner = require('./../runner.js');
 User = require('./../user.js');
@@ -15,17 +16,8 @@ Mate = require('./../mate.js');
 
 
 
-//var Bob = new User({username: "killerbob", password: "wabe", email: 'bob@bob', firstname: "bob"});
-//Bob.save();
-
-//var url = 'mongodb://localhost:27017/runningmate';
-//mongoose.connect(url);
-//var db = mongoose.connection;
-
-/* GET home page. */
 router.get('/', ensureAuthenticate, function(req, res, next) {
   res.render('index', { title: 'Running Mate' });
-  //console.log(req.headers);
 });
 
 function ensureAuthenticate(req, res, next) {
@@ -85,7 +77,7 @@ router.post('/register', function(req, res) {
 			}
 			else {
 				var newUser = {username: req.body.newusername, password: req.body.newpassword,
-					city: req.body.city, state: req.body.state};
+					city: req.body.city, email: req.body.email};
 			
 				User.addUser(newUser, function(err, user) {
 					if(err) {console.log(err)};
@@ -128,34 +120,24 @@ router.get('/newrunner', function(req, res) {
 router.post('/addrunner', function(req, res) {			
             
 	var newRunner = {username: req.user.username, duration: req.body.gettingBackIn, 
-		city: req.body.city, pace: req.body.pace};
+		city: req.body.city, distance: req.body.distance, notes: req.body.notes, 
+	    runstatus: 'Leaving Soon'};
 		
-	Runner.findMate(newRunner, function() {
-		Mate.getMate(newRunner, function() {
-			res.redirect('/prerun');
-		});
-		
+	Runner.findMate(newRunner, function(potentialmate) {
+		res.redirect('/run');
 	});		
 	
 });
 
-router.get('/prerun', function(req, res) {
-	Mate.getMate(req.user.username, function(err, mate) {
-		if (err) {
-			console.log(err);
-		}
-		var themate;
-		if (mate){
-			themate = mate.mate1;
-			if (themate == req.user.username) {
-				themate = mate.mate2;
-			}
-		}
-		res.render('prerun', {
-			title: 'Pre-Run',
-			mate: themate
+router.get('/run', function(req, res) {
+	Runner.getRunner(req.user.username, function(err, runner) {
+		//if(!runner.mate) {runner.mate = undefined};
+		res.render('run', {
+			title: 'Run',
+			mate: runner.mate
 		});
 	});
 });
+
 
 module.exports = router;

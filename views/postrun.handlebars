@@ -1,0 +1,35 @@
+<h5>Great job, {{user.username}}!</h5>
+<br>
+<span>Let {{mate}} know how you did.</span>
+<br>
+<br>
+  <form class ="form-vertical" id="form_post_runner" name="postrunner" method="post" action="/postrun">
+    <span>My run lasted approximately: </span>
+	<br>
+    <input id="radio_one" type="radio" name="runLasted" value="10"> 10 mins or less<br>
+    <input id="radio_two" type="radio" name="runLasted" value="15"> 15 mins<br>
+    <input id="radio_three" type="radio" name="runLasted" value="30" checked> 30 mins<br>
+    <input id="radio_four" type="radio" name="runLasted" value="45"> 45 mins<br>
+    <input id="radio_five" type="radio" name="runLasted" value="60"> 60 mins or more<br>
+	<input type="radio" name="runLasted" value="other"> No idea
+    <br>
+    <br>
+	<span>I ran approximately:<span><br>
+    <input id="radio_nine" type="radio" name="distance" value="1"> 1 mile / 1.6 km or less<br>
+    <input id="radio_ten" type="radio" name="distance" value="3"> 3 miles / 4.8 km<br>
+    <input id="radio_eleven" type="radio" name="distance" value="5" checked> 5 miles / 8 km<br>
+	<input id="radio_twelve" type="radio" name="distance" value="7"> 7 miles / 11.3 km<br>
+	<input id="radio_thirteen" type="radio" name="distance" value="9"> 9 miles / 14.5 kmor more<br>
+	<input type="radio" name="distance" value="other"> No clue
+	<br>
+	<br>
+	{{!
+	<span>I ran at a:<span><br>
+    <input id="radio_six" type="radio" name="pace" value="leisurely"> leisurely pace<br>
+    <input id="radio_seven" type="radio" name="pace" value="moderate" checked> moderate pace<br>
+    <input id="radio_eight" type="radio" name="pace" value="fast"> fast pace<br>
+	<br>
+	<br>
+	}}
+	
+	

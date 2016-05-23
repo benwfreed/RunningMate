@@ -1,0 +1,92 @@
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+</head>
+   
+  <div id="lacksMate">
+      <h5>Finding you a runningmate now. Hang in there {{user.username}}.</h5>
+  </div>
+  
+  <div id="hasMate">
+	  <div class="alert alert-success">You have a runningmate!</div>
+	  <h5>{{user.username}}, your runningmate is <span id="matename"></span>.</h5>
+	  <br>
+	  <div class="panel panel-default">
+	   	  <div class="panel-heading"><h4 id="matetitle"></h4></div>
+	 
+		   <div class="panel-body">
+		       <h4><span id="matestatus" class="label label-default"></span></h4>
+			   <br><span id="city" class="details"></span>
+		   	   <br><span id="distance" class="details"></span>
+			   <br><span id="time" class="details"></span>
+			   <br><span id="notes" class="details"></span>
+		   </div>
+	  </div>
+	       <span>Ready to go? Let your runningmate know.</span>
+	       <br>
+	       <br>
+	       <button id="statusbutton" class="btn btn-primary">Leaving Now!</button>
+	   </div>
+   
+   
+	  <script>
+	    $(function() {
+			$('#hasMate').hide();
+			$('#city').hide();
+			$('#distance').hide();
+			$('#notes').hide();
+		});
+	  </script>
+
+   
+	<script src="/socket.io/socket.io.js"></script>
+	
+	<script>
+	  var status;
+	  $(function() {
+  	  var socket = io('http://localhost:3000');
+  	  	  socket.on('matefeedback', function (data) {
+  	      	console.log(data);
+			if (data.mate) {
+			    $('#hasMate').show();
+				$('#lacksMate').hide();
+				$('#matename').text(data.mate.username);
+				$('#matetitle').text(data.mate.username);
+					if(data.mate.city) {
+				        $('#city').text('City: '+data.mate.city);
+					} else {
+						$('#city').text('Location Unknown').show();
+					}
+					if(data.mate.duration) {
+					    $('#time').text('Estimated Run Time: '+data.mate.duration+' mins');
+						
+					}
+					if(data.mate.distance) {
+					    $('#distance').text('Estimated Distance: '+data.mate.distance).show();
+					}
+					if(data.mate.runstatus) {
+						$('#matestatus').text('Status: '+data.mate.runstatus);
+					}
+					if(data.mate.notes) {
+					    $('#notes').text('Notes: '+data.mate.notes).show();
+					}
+			}
+  	      });
+		  
+		  socket.on('statusfeedback', function(data) {
+		  	console.log(data);
+			status = data.runstatus;
+			console.log(status);
+		  });
+		  
+		  $('#statusbutton').click(function() {
+		  	console.log('click');
+			if (status)
+			socket.emit('mateupdate', {
+				status: 'Running Now!'
+			});
+		  });
+	  });
+	</script>	
+
+   
+   
