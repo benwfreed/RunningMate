@@ -76,9 +76,24 @@ router.post('/register', function(req, res) {
 				res.redirect('/register');
 			}
 			else {
-				var newUser = {username: req.body.newusername, password: req.body.newpassword,
-					city: req.body.city, email: req.body.email};
-			
+				var newUser = {
+					username: req.body.newusername, 
+					password: req.body.newpassword,
+					city: req.body.city, 
+					email: req.body.email, 
+					lastrun: {
+						city: "",
+						time: "",
+						distance: "",
+						notes: ""
+					},
+					matelastrun: {
+						matecity: "",
+						matetime: "",
+						matedistance: "",
+						matenotes: ""
+					}
+				};
 				User.addUser(newUser, function(err, user) {
 					if(err) {console.log(err)};
 					console.log(user);
@@ -135,6 +150,58 @@ router.get('/run', function(req, res) {
 		res.render('run', {
 			title: 'Run',
 			mate: runner.mate
+		});
+	});
+});
+
+router.get('/giveresults', function(req, res) {
+	Runner.getRunner(req.user.username, function(err, runner) {
+		res.render('giveresults', {
+			runner: runner
+		});
+	});
+});
+
+router.post('/giveresults', function(req, res) {
+	Runner.findOne({username: req.user.username}, function(err, runner) {
+		var city = runner.city;
+		var lastrun = {
+			city: city,
+			time: req.body.time,
+			distance: req.body.distance,
+			notes: req.body.notes
+		};
+		var matelastrun = {
+			matename: req.user.username,
+			matecity: city,
+			matetime: req.body.time,
+			matedistance: req.body.distance,
+			matenotes: req.body.notes
+		};
+		User.findOneAndUpdate({username: req.user.username}, {lastrun: lastrun}, {new: true}, function(err, user) {
+			console.log(user.username+' lastrun updated.');
+			User.findOneAndUpdate({username: runner.mate}, {matelastrun: matelastrun}, {new: true}, function(err, mate) {
+				console.log(mate.username+' matelastrun updated.');
+				Runner.remove({username: req.user.username}, function(err, removed) {
+					console.log(req.user.username+' removed from Runners');
+				});
+				res.render('seeresults', {
+					title: 'Results',
+					lastrun: lastrun,
+					matelastrun: user.matelastrun
+				});
+			});
+		});
+	});
+});
+
+router.get('/seeresults', function(req, res) {
+	User.findOne({username: req.user.username}, function(err, user) {
+		console.log(user.email);
+		res.render('seeresults', {
+			title: 'Results',
+			lastrun: user.lastrun,
+			matelastrun: user.matelastrun
 		});
 	});
 });

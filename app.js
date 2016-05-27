@@ -147,7 +147,7 @@ io.of('/').on('connection', function(socket) {
 	console.log(socket.request.user.username+' connected');
 	socket.join(socket.request.user.username);
 	Runner.getRunner(socket.request.user.username, function(er, runner) {
-		if (runner.mate) {
+		if (runner && runner.mate) {
 			console.log(runner.mate);
 			io.to(runner.mate).emit('matefeedback', {
 				mate: runner,
@@ -155,13 +155,14 @@ io.of('/').on('connection', function(socket) {
 			io.to(socket.request.user.username).emit('statusfeedback', {
 				runstatus: runner.runstatus
 			});
-			Runner.getRunner(runner.mate, function(er, mate) {
+			Runner.getRunner(runner.mate, function(er, themate) {
 				io.to(socket.request.user.username).emit('matefeedback', {
-					mate: mate,
+					mate: themate,
 				});
-				io.to(mate.username).emit('statusfeedback'), {
-					runstatus: mate.runstatus
-				}
+				console.log(themate.runstatus);
+				io.to(themate.username).emit('statusfeedback', {
+					runstatus: themate.runstatus
+				});
 			});
 		}
 	});
@@ -190,14 +191,20 @@ io.of('/').on('connection', function(socket) {
 	});
 	
 	socket.on('mateupdate', function(data) {
-		Runner.findOneAndUpdate({username: data.myname}, {status: data.status}, function(err, runner) {
-			io.to(data.room).emit('', {
-				room: data.matename,
-				mate1: data.myname, 
-				mate2: data.matename,
-				mate1details: runner
-			})
+		Runner.findOneAndUpdate({username: socket.request.user.username}, {runstatus: data.status}, 
+			{new: true}, function(err, runner) {
+			io.to(runner.mate).emit('matefeedback', {
+				mate: runner
+			});
+			io.to(runner.username).emit('statusfeedback', {
+				runstatus: data.status
+			});
 		});
+	});
+	
+	socket.on('rundone', function(data) {
+		console.log(socket.request.user.username);
+		console.log(data);
 	});
 	
 	socket.on('disconnect', function(data) {

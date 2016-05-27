@@ -21,7 +21,7 @@
 			   <br><span id="notes" class="details"></span>
 		   </div>
 	  </div>
-	       <span>Ready to go? Let your runningmate know.</span>
+	       <span id=statusmessage></span>
 	       <br>
 	       <br>
 	       <button id="statusbutton" class="btn btn-primary">Leaving Now!</button>
@@ -34,6 +34,7 @@
 			$('#city').hide();
 			$('#distance').hide();
 			$('#notes').hide();
+			
 		});
 	  </script>
 
@@ -41,7 +42,6 @@
 	<script src="/socket.io/socket.io.js"></script>
 	
 	<script>
-	  var status;
 	  $(function() {
   	  var socket = io('http://localhost:3000');
   	  	  socket.on('matefeedback', function (data) {
@@ -69,21 +69,58 @@
 					if(data.mate.notes) {
 					    $('#notes').text('Notes: '+data.mate.notes).show();
 					}
+
+					switch($('#matestatus').text()) {
+						case 'Leaving Soon':
+							$('#matestatus').removeClass('label label-primary')
+									.removeClass('label label-success')
+									.addClass('label label-default');
+									break;
+						case 'Status: Running Now!':
+							$('#matestatus').removeClass('label label-default')
+									.removeClass('label label-success')
+									.addClass('label label-primary');
+									break;
+						case 'Status: Run Completed!':
+							$('#matestatus').removeClass('label label-primary')
+									.removeClass('label label-default')
+									.addClass('label label-success');
+									break;
+						case '': break;
+					}
 			}
   	      });
 		  
 		  socket.on('statusfeedback', function(data) {
 		  	console.log(data);
 			status = data.runstatus;
-			console.log(status);
+			switch(status) {
+				case 'Leaving Soon':
+					$('#statusmessage').text('Ready to go? Let your runningmate know.');
+					$('#statusbutton').text('Leaving Now!');
+					break;
+				case 'Running Now!':
+					$('#statusmessage').text('Great! Let your mate know when you get back.');
+					$('#statusbutton').text('I\'m Back!');
+					break;
+				case 'Run Completed!':
+					window.location.href = '/giveresults';
+			}
 		  });
-		  
+		 
 		  $('#statusbutton').click(function() {
-		  	console.log('click');
-			if (status)
-			socket.emit('mateupdate', {
-				status: 'Running Now!'
-			});
+		  	console.log(status);
+			if (status == 'Leaving Soon') {
+				socket.emit('mateupdate', {
+					status: 'Running Now!'
+				});
+			}
+			if (status == 'Running Now!') {
+				socket.emit('mateupdate', {
+					status: 'Run Completed!'
+				});
+			}
+			
 		  });
 	  });
 	</script>	

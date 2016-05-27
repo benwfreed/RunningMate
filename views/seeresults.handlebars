@@ -1,0 +1,49 @@
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+</head>
+   
+
+<div class="row">
+	<div class="col-md-6">
+  	    <div class="panel panel-default">
+  	  	    <div class="panel-heading"><h4>{{user.username}}</h4></div>
+  		    <div class="panel-body">
+  			    {{#if lastrun.city}}<span>city: {{lastrun.city}}</span><br>{{/if}}
+  		   	    {{#if lastrun.time}}<span>time: {{lastrun.time}}</span><br>{{/if}}
+  			    {{#if lastrun.distance}}<span>distance: {{lastrun.distance}}</span><br>{{/if}}
+  			    {{#if lastrun.notes}}<span>notes: {{lastrun.notes}}</span><br>{{/if}}
+  		    </div>
+  	    </div>
+	</div>
+	<div class="col-md-6">
+		{{#if matelastrun}}
+        <div class="panel panel-default">
+    	    <div class="panel-heading">
+				<h4>{{matelastrun.matename}}</h4>
+			</div>
+    		<div class="panel-body">
+  			    {{#if matelastrun.matecity}}<span>city: {{matelastrun.matecity}}</span><br>{{/if}}
+  		   	    {{#if matelastrun.matetime}}<span>time: {{matelastrun.matetime}}</span><br>{{/if}}
+  			    {{#if matelastrun.matedistance}}<span>distance: {{matelastrun.matedistance}}</span><br>{{/if}}
+  			    {{#if matelastrun.matenotes}}<span>notes: {{matelastrun.matenotes}}</span><br>{{/if}}
+            </div>
+		{{/if}}	
+        </div>
+	</div>
+</div>
+
+<button id="donebutton" class="button btn-primary">Done</button>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+$(function() {
+	$('#donebutton').click(function() {
+		console.log('click');
+		 var socket = io('http://localhost:3000');
+		 socket.emit('rundone', {
+		 	run: 'done'
+		 });
+	});
+});
+</script>

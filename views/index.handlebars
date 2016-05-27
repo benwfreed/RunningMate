@@ -5,16 +5,17 @@
   <form class ="form-vertical" id="addrunner" name="addrunner" method="post" action="/addrunner">
     <span>Today, I'm tearing up the streets of: </span> 
     <br>
-    <input id="input_name" type="text" name="city" placeholder="{{user.city}}">
+    <input id="input_name" type="text" name="city" value="{{user.city}}">
     <br>
     <br>
     <span>I'm starting my run soon and will get back in approximately: </span>
 	<br>
-    <input id="radio_one" type="radio" name="gettingBackIn" value="10"> 10 mins or less<br>
-    <input id="radio_two" type="radio" name="gettingBackIn" value="15"> 15 mins<br>
-    <input id="radio_three" type="radio" name="gettingBackIn" value="30" checked> 30 mins<br>
-    <input id="radio_four" type="radio" name="gettingBackIn" value="45"> 45 mins<br>
-    <input id="radio_five" type="radio" name="gettingBackIn" value="60"> 60 mins or more
+    <input type="radio" name="gettingBackIn" value="10"> 10 mins or less<br>
+    <input type="radio" name="gettingBackIn" value="15"> 15 mins<br>
+    <input type="radio" name="gettingBackIn" value="30" checked> 30 mins<br>
+    <input type="radio" name="gettingBackIn" value="45"> 45 mins<br>
+    <input type="radio" name="gettingBackIn" value="60"> 60 mins or more<br>
+    <input type="radio" name="gettingBackIn" value="Who knows?"> Who knows?
     <br>
     <br>
 	<span>I'm aiming for a distance of approximately:<span><br>
