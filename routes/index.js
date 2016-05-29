@@ -132,7 +132,19 @@ router.get('/newrunner', function(req, res) {
     res.render('newrunner', {title: 'Add Runner'});
 });
 
-router.post('/addrunner', function(req, res) {			
+router.post('/addrunner', function(req, res) {
+	
+	var blankmate = {
+		matename: "",
+		matecity: "",
+		matetime: "",
+		matedistance: "",
+		matenotes: ""
+	};
+	
+	User.findOneAndUpdate({username: req.user.username}, {matelastrun: blankmate}, {new: true}, function(err, user) {
+		console.log(user.matelastrun);
+	});		
             
 	var newRunner = {username: req.user.username, duration: req.body.gettingBackIn, 
 		city: req.body.city, distance: req.body.distance, notes: req.body.notes, 
@@ -146,7 +158,6 @@ router.post('/addrunner', function(req, res) {
 
 router.get('/run', function(req, res) {
 	Runner.getRunner(req.user.username, function(err, runner) {
-		//if(!runner.mate) {runner.mate = undefined};
 		res.render('run', {
 			title: 'Run',
 			mate: runner.mate

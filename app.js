@@ -148,7 +148,6 @@ io.of('/').on('connection', function(socket) {
 	socket.join(socket.request.user.username);
 	Runner.getRunner(socket.request.user.username, function(er, runner) {
 		if (runner && runner.mate) {
-			console.log(runner.mate);
 			io.to(runner.mate).emit('matefeedback', {
 				mate: runner,
 			});
@@ -159,10 +158,11 @@ io.of('/').on('connection', function(socket) {
 				io.to(socket.request.user.username).emit('matefeedback', {
 					mate: themate,
 				});
-				console.log(themate.runstatus);
-				io.to(themate.username).emit('statusfeedback', {
-					runstatus: themate.runstatus
-				});
+				if (themate) {
+					io.to(themate.username).emit('statusfeedback', {
+						runstatus: themate.runstatus
+					});
+				}
 			});
 		}
 	});
@@ -203,6 +203,19 @@ io.of('/').on('connection', function(socket) {
 	});
 	
 	socket.on('rundone', function(data) {
+		console.log(socket.request.user.username);
+		console.log(data);
+		User.findOne({ username : socket.request.user.username}, function(err, user) {
+			if (user) {
+				console.log('sending message to '+user.matelastrun.matename);
+				io.to(user.matelastrun.matename).emit('mateback', {
+					yourmate: 'isback'
+				});
+			}
+		});
+	});
+	
+	socket.on('sessiondone', function(data) {
 		console.log(socket.request.user.username);
 		console.log(data);
 	});

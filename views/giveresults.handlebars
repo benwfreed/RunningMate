@@ -1,3 +1,7 @@
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+</head>
+
 <h3>Welcome Back, {{runner.username}}.</h3>
 <br>
 <div id=giveresults>
@@ -28,3 +32,16 @@
 		<button id="button_results" type="submit">Done</button>
 	</form>
 </div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+	$(function() {
+		var socket = io('http://localhost:3000');
+		$('#button_results').click(function() {
+			socket.emit('rundone', {
+				run: 'done'
+			});
+		});
+	});
+</script>

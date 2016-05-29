@@ -38,12 +38,16 @@
 
 <script>
 $(function() {
+ var socket = io('http://localhost:3000');
+ 	console.log('connected');
+ 	socket.on('mateback', function (data) {
+ 	console.log(data);
+	location.assign('/seeresults');
+ });
 	$('#donebutton').click(function() {
+		location.assign('/logout');
 		console.log('click');
-		 var socket = io('http://localhost:3000');
-		 socket.emit('rundone', {
-		 	run: 'done'
-		 });
+		 
 	});
 });
 </script>
