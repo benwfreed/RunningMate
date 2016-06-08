@@ -73,6 +73,7 @@ app.use(flash());
 app.use(function (req, res, next) {
 	res.locals.success_msg = req.flash('success_msg');
 	res.locals.error_msg = req.flash('error_msg');
+	res.locals.warning_msg = req.flash('warning_msg');
 	res.locals.error = req.flash('error');
 	res.locals.user = req.user;
 	next();
@@ -124,6 +125,40 @@ passport.deserializeUser(function(user, done) {
 
 app.use('/', routes);
 app.use('/users', users);
+
+/*
+function autoroute(req, res, next) {
+	console.log('middleware');
+	if (req.user) {
+		User.findOne({username: req.user.username}, function(err, user) {
+			if (user.active) {
+				if (true) {
+					Runner.findOne({username: req.user.username}, function(err, runner) {
+						if (err) console.log(err);
+						if (runner && runner.runstatus === 'Run Completed!') {
+							if (req.url != '/giveresults') res.render('giveresults', {
+								runner: runner
+							});
+						}
+						else if (req.url != '/run') res.run('run', {
+							title: 'Run',
+							mate: runner.mate
+						});
+					});
+				} else {
+					res.render('/seeresults', {
+						title: 'Results',
+						lastrun: user.lastrun,
+						matelastrun: user.matelastrun
+					});
+				}
+			}
+		});
+	}
+	else next();
+}
+*/
+
 
 
 io.use(passportSocketIo.authorize({

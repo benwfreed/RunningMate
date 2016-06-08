@@ -14,10 +14,16 @@ Runner = require('./../runner.js');
 User = require('./../user.js');
 Mate = require('./../mate.js');
 
-
-
 router.get('/', ensureAuthenticate, function(req, res, next) {
-  res.render('index', { title: 'Running Mate' });
+	Runner.findOne({username: req.user.username}, function(err, runner) {
+		if (err) console.log(err);
+		if (runner) {
+			req.flash('warning_msg', 'You already committed to run. Please cancel this run before starting another.');
+			res.redirect('/run');
+		} else {
+			res.render('index', {title: 'Running Mate'});
+		}
+	});
 });
 
 function ensureAuthenticate(req, res, next) {
@@ -132,40 +138,72 @@ router.get('/newrunner', function(req, res) {
     res.render('newrunner', {title: 'Add Runner'});
 });
 
-router.post('/addrunner', function(req, res) {
+router.post('/addrunner', function(req, res, next) {
 	
-	var blankmate = {
-		matename: "",
-		matecity: "",
-		matetime: "",
-		matedistance: "",
-		matenotes: ""
-	};
+	Runner.findOne({username: req.user.username}, function(err, runner) {
+		if (err) console.log(err);
+		if (runner) {
+			res.redirect('/run');
+		} else {
+			var blankself = {
+				city: "",
+				time: "",
+				distance: "",
+				notes: ""
+			};
 	
-	User.findOneAndUpdate({username: req.user.username}, {matelastrun: blankmate}, {new: true}, function(err, user) {
-		console.log(user.matelastrun);
-	});		
+			var blankmate = {
+				matename: "",
+				matecity: "",
+				matetime: "",
+				matedistance: "",
+				matenotes: ""
+			};
+	
+	
+	
+			User.findOneAndUpdate(
+				{username: req.user.username}, 
+				{$set: 
+					{
+					lastrun: blankself, 
+					matelastrun: blankmate,
+					active: true
+					}
+				},
+				{new: true}, 
+				function(err, user) {
+				console.log(user.matelastrun);
+			});
+	
             
-	var newRunner = {username: req.user.username, duration: req.body.gettingBackIn, 
-		city: req.body.city, distance: req.body.distance, notes: req.body.notes, 
-	    runstatus: 'Leaving Soon'};
+			var newRunner = {username: req.user.username, duration: req.body.gettingBackIn, 
+				city: req.body.city, distance: req.body.distance, notes: req.body.notes, 
+			    runstatus: 'Leaving Soon'};
 		
-	Runner.findMate(newRunner, function(potentialmate) {
-		res.redirect('/run');
-	});		
-	
+			Runner.findMate(newRunner, function(potentialmate) {
+				res.redirect('/run');
+			});		
+		}
+	});
 });
 
 router.get('/run', function(req, res) {
 	Runner.getRunner(req.user.username, function(err, runner) {
-		res.render('run', {
-			title: 'Run',
-			mate: runner.mate
-		});
+		if (!runner) {
+			req.flash('warning_msg', 'You didn\'t fill out your Running Mate form yet!');
+			res.redirect('/');
+		} else {
+			console.log(runner.mate);
+			res.render('run', {
+				title: 'Run',
+				mate: runner.mate
+			});
+		}
 	});
 });
 
-router.get('/giveresults', function(req, res) {
+router.get('/giveresults', ensureAuthenticate, function(req, res) {
 	Runner.getRunner(req.user.username, function(err, runner) {
 		res.render('giveresults', {
 			runner: runner
@@ -173,9 +211,9 @@ router.get('/giveresults', function(req, res) {
 	});
 });
 
-router.post('/giveresults', function(req, res) {
+router.post('/giveresults', ensureAuthenticate, function(req, res) {
 	Runner.findOne({username: req.user.username}, function(err, runner) {
-		var city = runner.city;
+		if (runner) var city = runner.city;
 		var lastrun = {
 			city: city,
 			time: req.body.time,
@@ -206,7 +244,7 @@ router.post('/giveresults', function(req, res) {
 	});
 });
 
-router.get('/seeresults', function(req, res) {
+router.get('/seeresults', ensureAuthenticate, function(req, res) {
 	User.findOne({username: req.user.username}, function(err, user) {
 		console.log(user.email);
 		res.render('seeresults', {
