@@ -6,48 +6,87 @@
 <div class="row">
 	<div class="col-md-6">
   	    <div class="panel panel-default">
-  	  	    <div class="panel-heading"><h4>{{user.username}}</h4></div>
+  	  	    <div class="panel-heading"><h4>{{username}}</h4></div>
   		    <div class="panel-body">
-  			    {{#if lastrun.city}}<span>city: {{lastrun.city}}</span><br>{{/if}}
-  		   	    {{#if lastrun.time}}<span>time: {{lastrun.time}}</span><br>{{/if}}
-  			    {{#if lastrun.distance}}<span>distance: {{lastrun.distance}}</span><br>{{/if}}
-  			    {{#if lastrun.notes}}<span>notes: {{lastrun.notes}}</span><br>{{/if}}
+  			    {{#if results.runcity}}<span>City: {{results.runcity}}</span><br>{{/if}}
+  		   	    {{#if results.time}}<span>Reported Time: {{results.time}} minutes</span><br>{{/if}}
+  			    {{#if results.distance}}<span>Reported Distance: {{results.distance}} miles</span><br>{{/if}}
+  			    {{#if results.notes}}<span>Notes: {{results.notes}}</span><br>{{/if}}
+				{{#if fitbitcalories}}<span>Calories Burned: {{fitbitcalories}}</span><br>{{/if}}
+				{{#if fitbitdistance}}<span>FitBit Distance: {{fitbitdistance}} miles</span><br>{{/if}}
   		    </div>
   	    </div>
 	</div>
 	<div class="col-md-6">
-		{{#if matelastrun}}
-        <div class="panel panel-default">
+        <div id="matepanel" class="panel panel-default">
     	    <div class="panel-heading">
-				<h4>{{matelastrun.matename}}</h4>
+				<h4>{{matename}}</h4>
 			</div>
-    		<div class="panel-body">
-  			    {{#if matelastrun.matecity}}<span>city: {{matelastrun.matecity}}</span><br>{{/if}}
-  		   	    {{#if matelastrun.matetime}}<span>time: {{matelastrun.matetime}}</span><br>{{/if}}
-  			    {{#if matelastrun.matedistance}}<span>distance: {{matelastrun.matedistance}}</span><br>{{/if}}
-  			    {{#if matelastrun.matenotes}}<span>notes: {{matelastrun.matenotes}}</span><br>{{/if}}
+    		<div id="body" class="panel-body">
+  			    {{#if materesults.runcity}}<span id="matecity">City: {{materesults.runcity}}</span><br>{{/if}}
+  		   	    {{#if materesults.time}}<span id="matetime">Reported Time: {{materesults.time}} minutes</span><br>{{/if}}
+  			    {{#if materesults.distance}}<span id="matedistance">Reported Distance: {{materesults.distance}} miles</span><br>{{/if}}
+  			    {{#if materesults.notes}}<span id="matenotes">Notes: {{materesults.notes}}</span><br>{{/if}}
+				{{#if matefitbitcalories}}<span id="caloriesburned">Calories Burned: {{matefitbitcalories}}</span><br>{{/if}}
+				{{#if matefitbitdistance}}<span id="fitbitdistance">FitBit Distance: {{matefitbitdistance}} miles</span><br>{{/if}}
             </div>
-		{{/if}}	
         </div>
 	</div>
 </div>
 
-<button id="donebutton" class="button btn-primary">Done</button>
+		<div>
+		<button id="donebutton" class="button btn-primary center-block">Done</button>
+		</div>
+		
+{{#if materesults.distance}}
+	
+{{else}}
+	<script>
+	$(function() {
+		$('#matepanel').hide();
+		$('#donebutton').hide();
+	});
+	</script>
+{{/if}}	
 
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
-$(function() {
+$(document).ready(function() {
  var socket = io('http://localhost:3000');
+ 	socket.emit('rundone', {
+		run: 'done'
+	});
+	$('#donebutton').click(function() {
+		socket.emit('sessiondone', {
+			session: 'done'
+		});
+		location.assign('/logout');
+	});
  	console.log('connected');
  	socket.on('mateback', function (data) {
- 	console.log(data);
-	location.assign('/seeresults');
- });
-	$('#donebutton').click(function() {
-		location.assign('/logout');
-		console.log('click');
-		 
+ 		console.log(data);
+		if (data.results.runcity && $('#matecity').length === 0) {
+			console.log('true');
+			$('#body').append('<span id="matecity">City: '+data.results.runcity+'</span><br>');
+		} 
+		if (data.results.time  && $('#matetime').length === 0) {
+			$('#body').append('<span id="matetime">Reported Time: '+data.results.time+' minutes</span><br>');
+		}
+		if (data.results.distance && $('#matedistance').length === 0) {
+			$('#body').append('<span id="matedistance">Reported Distance: '+data.results.distance+' miles</span><br>');
+		}
+		if (data.results.notes && $('#matenotes').length === 0) {
+			$('#body').append('<span id="matenotes">Notes: '+data.results.notes+'</span><br>');
+		}
+		if (data.results.calories && $('#caloriesburned').length === 0) {
+			$('#body').append('<span id="caloriesburned">Calories Burned: '+data.results.calories+'</span><br>');
+		}
+		if (data.results.fitbitdistance && $('#fitbitdistance').length === 0) {
+			$('#body').append('<span id="fitbitdistance">FitBit Distance: '+data.results.fitbitdistance+' miles</span>');
+		}
+		$('#matepanel').show();
+		$('#donebutton').show();
 	});
 });
 </script>

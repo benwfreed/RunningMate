@@ -2,26 +2,25 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
 </head>
 
-<h3>Welcome Back, {{runner.username}}.</h3>
+<h3>Welcome Back, {{user}}.</h3>
 <br>
 <div id=giveresults>
-	<h4>Let {{runner.mate}} know how you did!</h4>
+	<h4>Let {{mate}} know how you did!</h4>
 	<form class="form-vertical" id="resultsform" name="resultsform" method="post" action="/giveresults">
 		<span>My total run time was approximately:</span><br>
-	    <input type="radio" name="time" value="10"> 10 mins or less<br>
-	    <input type="radio" name="time" value="15"> 15 mins<br>
-	    <input type="radio" name="time" value="30" checked> 30 mins<br>
-	    <input type="radio" name="time" value="45"> 45 mins<br>
-	    <input type="radio" name="time" value="60"> 60 mins or more
+	    <input type="radio" name="time" value=10> 10 mins or less<br>
+	    <input type="radio" name="time" value=15> 15 mins<br>
+	    <input type="radio" name="time" value=30 checked> 30 mins<br>
+	    <input type="radio" name="time" value=45> 45 mins<br>
+	    <input type="radio" name="time" value=60> 60 mins or more
 	    <br>
 	    <br>
 		<span>My total distance was approximately:</span><br>
-	    <input id="radio_nine" type="radio" name="distance" value="1 mile / 1.6 km"> 1 mile / 1.6 km or less<br>
-	    <input id="radio_ten" type="radio" name="distance" value="3 miles / 4.8 km"> 3 miles / 4.8 km<br>
-	    <input id="radio_eleven" type="radio" name="distance" value="5 miles / 8 km" checked> 5 miles / 8 km<br>
-		<input id="radio_twelve" type="radio" name="distance" value="7 miles / 11.3 km"> 7 miles / 11.3 km<br>
-		<input id="radio_thirteen" type="radio" name="distance" value="9 miles / 14.5"> 9 miles / 14.5 km or more<br>
-		<input type="radio" name="distance" value="other"> No clue
+	    <input id="radio_nine" type="radio" name="distance" value=1> 1 mile<br>
+	    <input id="radio_ten" type="radio" name="distance" value=3> 3 miles<br>
+	    <input id="radio_eleven" type="radio" name="distance" value=5 checked> 5 miles<br>
+		<input id="radio_twelve" type="radio" name="distance" value=7> 7 miles<br>
+		<input id="radio_thirteen" type="radio" name="distance" value=9> 9 miles or more<br>
 		<br>
 		<br>
 		<span>Notes:</span>
@@ -29,7 +28,7 @@
 	    <textarea type="text" form="resultsform" name="notes" placeholder="More Info to Share"></textarea>
 	    <br>
 	    <br>
-		<button id="button_results" type="submit">Done</button>
+		<button id="button_results" class="btn btn-primary" type="submit">Done</button>
 	</form>
 </div>
 

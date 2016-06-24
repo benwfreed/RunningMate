@@ -1,25 +1,84 @@
-<h3>Login</h3>
+<style>
+	#laceup {
+		  background: #8A2BE2; /* For browsers that do not support gradients */
+		  background: -webkit-linear-gradient(left, #8A2BE2 , #7F00FF); /* For Safari 5.1 to 6.0 */
+		  background: -o-linear-gradient(right, #8A2BE2, #7F00FF); /* For Opera 11.1 to 12.0 */
+		  background: -moz-linear-gradient(right, #8A2BE2, #7F00FF); /* For Firefox 3.6 to 15 */
+		  background: linear-gradient(to right, #72587F, #7D26CD); /* Standard syntax */
+		  color: white;
+		  margin-top: none;
+		  martgin-bottom: 5px;
+	}
+	
+	a, button {
+		width: 125px;
+	}
+	
+	
+	
+</style>
+
+
+
+  <div class="text-center">
+  
+  <div id="laceup">
+  <br>
+  <h1>Running Mate</h1>
+
+  <p>Find a remote running buddy. Share your stats.</p>
+  <br>
+  </div>
+  <div class="container">
+  <br>
   {{#if errors}}
   	{{#each errors}}
 		<div class="alert alert-danger">{{msg}}</div>
 	{{/each}}
   {{/if}}
+
+  {{#if success_msg}}
+	<div class="alert alert-success">{{success_msg}}</div>
+  {{/if}}
+
+  {{#if error_msg}}
+	<div class="alert alert-danger">{{error_msg}}</div>
+  {{/if}}
+
+  {{#if warning_msg}}
+	<div class="alert alert-warning">{{warning_msg}}</div>
+  {{/if}}
+
+  {{#if error}}
+	<div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+  
+  <br>
   <form class ="form-vertical" id="form_login" name="login" method="post" action="/login">
-    <span>username</span>
-    <span>&nbsp</span>
-    <input id="input_username" type="text" placeholder="username" name="username">
-    <br>
-    <br>
-    <span>password</span> 
-    <span>&nbsp</span>
-    <input id="input_password" type="password" placeholder="password" name="password">
-    <br>
-    <br>
-    <button id="submit_login" type="submit">Go</button>
+    <input id="input_username" type="text" placeholder="username" name="username"><br>
+    <input id="input_password" type="password" placeholder="password" name="password"><br>
+    <button id="submit_login" class="btn btn-primary" type="submit">Log In</button>
 	<br>
 	<br>
   </form>
-  
-<span>Don't have an account? Register <a href="register">here</a>.</span>
+  </div>
+<br>
+
+<div class="text-center">
+	<div class=text-center>
+		<span>Don't have an account?</span><br>
+		<a class="btn btn-success" href="register">Sign Up</a><br>
+		<br>
+	</div>
+	<div class="text-center">
+		<span>Wearing a Fitbit on your next run?</span><br>
+		<a class="btn btn-info" href="auth/fitbit">Log In with Fitbit</a><br>
+		<br>
+	</div>
+	<div>
+
+</div>
+
+
   
   

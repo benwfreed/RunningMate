@@ -3,27 +3,23 @@ var router = express.Router();
 var mongodb = require('mongodb');
 var mongoose = require('mongoose');
 var passport = require('passport');
+var https = require('https');
+var http = require('http');
 var expressValidator = require('express-validator');
 var LocalStrategy = require('passport-local').Strategy;
+var FitBitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
 var flash = require('connect-flash');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-
-Runner = require('./../runner.js');
+var Runner = require('./../runner.js');
 User = require('./../user.js');
 Mate = require('./../mate.js');
+var users = require('../api/user.js');
+var FitBit = require('./../fitbit.js');
 
 router.get('/', ensureAuthenticate, function(req, res, next) {
-	Runner.findOne({username: req.user.username}, function(err, runner) {
-		if (err) console.log(err);
-		if (runner) {
-			req.flash('warning_msg', 'You already committed to run. Please cancel this run before starting another.');
-			res.redirect('/run');
-		} else {
-			res.render('index', {title: 'Running Mate'});
-		}
-	});
+		res.render('index', {title: 'Running Mate'});
 });
 
 function ensureAuthenticate(req, res, next) {
@@ -33,25 +29,27 @@ function ensureAuthenticate(req, res, next) {
 	else {res.redirect('/login')};
 };
 
+//LOGIN
+
 router.get('/login', function(req, res, next) {
-	res.render('login', {title: 'Running Mate'});
+	res.render('login', {noflash: true, nocontainer: true});
 });
 
 router.post('/login', passport.authenticate('local', {
+	noflash: true,
 	succesRedirect: '/',
 	failureRedirect: '/login',
 	failureFlash: true}), function(req, res) {
 	var username = req.body.username;
 	var password = req.body.password;
 	
-	req.checkBody('username', 'Please enter username').notEmpty();
-	req.checkBody('password', 'Please enter password').notEmpty();
+	req.checkBody('username', 'Please enter a username.').notEmpty();
+	req.checkBody('password', 'Please enter a password.').notEmpty();
 	
 	var errors = req.validationErrors();
 	
 	if (errors) {
 		res.render('login', {
-			title: 'Running Mate', 
 			errors: errors
 		});
 	} else {
@@ -60,19 +58,22 @@ router.post('/login', passport.authenticate('local', {
 	}
 });
 
+//REGISTRATION
+
 router.get('/register', function(req, res, next) {
-	res.render('register', {title: 'Running Mate'});
+	res.render('register', {nocontainer: true, noflash: true});
 });
 
 router.post('/register', function(req, res) {
-	req.checkBody('newusername', 'Please provide username.').notEmpty();
-	req.checkBody('newpassword', 'Please provide password.').notEmpty();
+	req.checkBody('newusername', 'Please provide a username.').notEmpty();
+	req.checkBody('newpassword', 'Please provide a password.').notEmpty();
 	
 	var errors = req.validationErrors();
 	if (errors) {
 		console.log('errors');
 		res.render('register', {
-			title: 'Running Mate',
+			nocontainer: true,
+			noflash: true,
 			errors: errors
 		});
 	} else {
@@ -87,22 +88,45 @@ router.post('/register', function(req, res) {
 					password: req.body.newpassword,
 					city: req.body.city, 
 					email: req.body.email, 
+					active: false,
+					runcity: "",
+					time: 0,
+					distance: 0,
+					notes: "",
+					runstatus: "Leaving Soon",
 					lastrun: {
 						city: "",
+						time: 0, 
+						distance: 0, 
+						notes: "",
+						mate: {
+							username: "",
+							time: 0,
+							distance: 0,
+							city: "",
+							notes: ""
+						}
+					},
+					mate: {
+						username: "",
+						runstatus: "",
+						runcity: "",
 						time: "",
 						distance: "",
-						notes: ""
+						notes: "",
+						lastrun: {
+							matename: "",
+							matecity: "",
+							matetime: "",
+							matedistance: "",
+							matenotes: "",
+							runstatus: "Leaving Soon"
+						}
 					},
-					matelastrun: {
-						matecity: "",
-						matetime: "",
-						matedistance: "",
-						matenotes: ""
-					}
 				};
 				User.addUser(newUser, function(err, user) {
 					if(err) {console.log(err)};
-					console.log(user);
+					User.findOne({username: newUser.username})
 				});
 				req.login(newUser, function(err) {
 					if(err) {console.log(err);}
@@ -112,25 +136,13 @@ router.post('/register', function(req, res) {
 			}
 		});
 	}
-	
 });
 
-router.get('/runnerlist', function(req, res) {
-  
-	Runner.getRunners(function(err, runners){
-		if(err) {
-			console.log(err);
-		}
-		res.render('runnerlist', {
-			"title": "Running Mate",
-			"runnerlist": runners
-		});
-	});
-});
+//LOGOUT
 
 router.get('/logout', function(req, res) {
 	req.logout();
-	req.flash('success_msg', 'You are logged out');
+	req.flash('success_msg', 'You are now logged out.');
 	res.redirect('/login');
 });
 
@@ -138,122 +150,154 @@ router.get('/newrunner', function(req, res) {
     res.render('newrunner', {title: 'Add Runner'});
 });
 
-router.post('/addrunner', function(req, res, next) {
+//PRE-RUN FORM
+
+router.post('/runform', function(req, res, next) {
 	
-	Runner.findOne({username: req.user.username}, function(err, runner) {
+	User.findOne({username: req.user.username}, function(err, user) {
 		if (err) console.log(err);
-		if (runner) {
+		if (user.active) {
+			req.flash('warning-msg', 'You\'re original run has not been changed.');
 			res.redirect('/run');
 		} else {
-			var blankself = {
-				city: "",
-				time: "",
-				distance: "",
-				notes: ""
-			};
-	
-			var blankmate = {
-				matename: "",
-				matecity: "",
-				matetime: "",
-				matedistance: "",
-				matenotes: ""
-			};
-	
-	
-	
 			User.findOneAndUpdate(
 				{username: req.user.username}, 
 				{$set: 
 					{
-					lastrun: blankself, 
-					matelastrun: blankmate,
+					runcity: req.body.city, 
+					time: req.body.time,
+					distance: req.body.distance,
+					notes: req.body.notes,
+					runstatus: 'Leaving Soon',
 					active: true
 					}
 				},
 				{new: true}, 
 				function(err, user) {
-				console.log(user.matelastrun);
-			});
-	
-            
-			var newRunner = {username: req.user.username, duration: req.body.gettingBackIn, 
-				city: req.body.city, distance: req.body.distance, notes: req.body.notes, 
-			    runstatus: 'Leaving Soon'};
-		
-			Runner.findMate(newRunner, function(potentialmate) {
-				res.redirect('/run');
-			});		
+				User.findMate(user, function() {
+					res.redirect('/run');
+				});
+			});	
 		}
 	});
 });
 
+//RUN
+
 router.get('/run', function(req, res) {
-	Runner.getRunner(req.user.username, function(err, runner) {
-		if (!runner) {
+	User.findOne({username:req.user.username}, function(err, user) {
+		if (user.time <= 0 && user.distance <= 0) {
 			req.flash('warning_msg', 'You didn\'t fill out your Running Mate form yet!');
 			res.redirect('/');
 		} else {
-			console.log(runner.mate);
 			res.render('run', {
 				title: 'Run',
-				mate: runner.mate
+				info: user
 			});
 		}
 	});
 });
 
+//GIVE RESULTS
+
 router.get('/giveresults', ensureAuthenticate, function(req, res) {
-	Runner.getRunner(req.user.username, function(err, runner) {
+	User.findOne({username: req.user.username}, function(err, user) {
 		res.render('giveresults', {
-			runner: runner
+			user: user.username,
+			mate: user.mate.username
 		});
 	});
 });
 
 router.post('/giveresults', ensureAuthenticate, function(req, res) {
-	Runner.findOne({username: req.user.username}, function(err, runner) {
-		if (runner) var city = runner.city;
-		var lastrun = {
-			city: city,
+	User.findOne({username: req.user.username}, function(err, user) {
+		var results = {
+			runcity: user.runcity, 
 			time: req.body.time,
 			distance: req.body.distance,
 			notes: req.body.notes
 		};
-		var matelastrun = {
-			matename: req.user.username,
-			matecity: city,
-			matetime: req.body.time,
-			matedistance: req.body.distance,
-			matenotes: req.body.notes
-		};
-		User.findOneAndUpdate({username: req.user.username}, {lastrun: lastrun}, {new: true}, function(err, user) {
-			console.log(user.username+' lastrun updated.');
-			User.findOneAndUpdate({username: runner.mate}, {matelastrun: matelastrun}, {new: true}, function(err, mate) {
-				console.log(mate.username+' matelastrun updated.');
-				Runner.remove({username: req.user.username}, function(err, removed) {
-					console.log(req.user.username+' removed from Runners');
-				});
-				res.render('seeresults', {
-					title: 'Results',
-					lastrun: lastrun,
-					matelastrun: user.matelastrun
-				});
-			});
+		user.results = results;
+		user.save();
+		User.findOne({'mate.username': req.user.username}, function(err, mate) {
+				user.lastrun = results;
+				user.lastrun.mate = mate.results;
+				user.lastrun.mate.username = mate.username;
+				user.save();
+				mate.lastrun = mate.results;
+				mate.lastrun.mate = results;
+				mate.lastrun.mate.username = user.username;
+				mate.mate.results = results;
+				mate.save();
+				if (user.fitbitId) {
+					var options = {
+					    host: 'api.fitbit.com',
+					    port: 443,
+					    path: '/1/user/-/activities/date/today.json',
+					    method: 'GET',
+					    headers: {
+					        'Content-Type': 'application/json',
+							'Authorization': 'Bearer ' + req.user.accessToken
+					    }
+					};
+					FitBit.getJSON(options,
+				        function(statusCode, result) {
+							user.results.calories = result.summary.activityCalories;
+							user.results.fitbitdistance = result.summary.distances[1].distance;
+							user.save();
+							mate.mate.results.calories = result.summary.activityCalories;
+							mate.mate.results.fitbitdistance = result.summary.distances[1].distance;
+							mate.save();
+							res.redirect('/seeresults');
+					});
+				} else {
+					res.redirect('/seeresults');
+				}
 		});
 	});
 });
+
+//SEE RESULTS
 
 router.get('/seeresults', ensureAuthenticate, function(req, res) {
 	User.findOne({username: req.user.username}, function(err, user) {
-		console.log(user.email);
-		res.render('seeresults', {
+			res.render('seeresults', {
+			username: req.user.username,
 			title: 'Results',
-			lastrun: user.lastrun,
-			matelastrun: user.matelastrun
-		});
+			results: user.results,
+			fitbitcalories: user.results.calories,
+			fitbitdistance: user.results.fitbitdistance,
+			matename: user.mate.username,
+			materesults: user.mate.results,
+			matefitbitcalories: user.mate.results.calories,
+			matefitbitdistance: user.mate.results.fitbitdistance
+			});
 	});
 });
 
+//This route is for unit testing
+
+router.get('/unittest', function(req, res) {
+	
+	//Unit testing the FitBit API...
+	
+	var options = {
+	    host: 'api.fitbit.com',
+	    port: 443,
+	    path: '/1/user/-/activities/date/2016-06-20.json',
+	    method: 'GET',
+	    headers: {
+	        'Content-Type': 'application/json',
+			'Authorization': 'Bearer ' + req.user.accessToken
+	    }
+	};
+	
+	FitBit.getJSON(options,
+        function(statusCode, result) {
+            console.log("onResult: (" + statusCode + ")" + JSON.stringify(result));
+            res.statusCode = statusCode;
+            res.send(result);
+     });
+});
 
 module.exports = router;

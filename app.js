@@ -4,8 +4,6 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var passportSocketIo = require('passport.socketio');
 
-server.listen(3000);
-
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
@@ -20,6 +18,7 @@ mongoose.connect(url);
 var db = mongoose.connection;
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var FitbitStrategy = require('passport-fitbit-oauth2').FitbitOAuth2Strategy;
 var bcrypt = require('bcryptjs');
 
 User = require('./user.js');
@@ -30,6 +29,8 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var credentials = require('./credentials.js');
 
+server.listen(3000);
+
 
 
 // view engine setup
@@ -39,6 +40,8 @@ app.set('view engine', 'handlebars');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+
+
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -96,24 +99,53 @@ app.use(expressValidator({
   }
 }));
 
-
-
 passport.use(new LocalStrategy(function(username, password, done){
 	User.getUserByUsername(username, function(err, user) {
 		if (err) {console.log(err)};
 		if (!user) {
-			return done(null, false, {message: 'Unknown User'});
+			return done(null, false, {message: 'Sorry! The username provided is not in our records.'});
 		}
 		User.comparePassword(password, user.password, function(err, isMatch) {
 			if (err) {console.log(err)};
 			if (isMatch) {
 				return done(null, user);
 			} else {
-				return done(null, false, {message: 'Invalid Password'})
+				return done(null, false, {message: 'Sorry! The password provided is incorrect.'})
 			}
 		});
 	});
 }));
+
+const CLIENT_ID = '227V4J';
+const CLIENT_SECRET = '377cb66591da54119334ce7c8ba57129';
+
+app.use(passport.initialize());
+
+var fitbitStrategy = new FitbitStrategy({
+  clientID: CLIENT_ID,
+  clientSecret: CLIENT_SECRET,
+  scope: ['activity','heartrate','location','profile'],
+  callbackURL: "http://localhost:3000/auth/fitbit/callback"
+}, function(accessToken, refreshToken, profile, done) {
+  // TODO: save accessToken here for later use
+	
+	
+	User.fitbitLogin(profile.id, profile.displayName, function() {
+		User.findOne({fitbitId: profile.id}, function(err, user) {
+			user.accessToken = accessToken;
+			user.refreshToken = refreshToken;
+			user.save();
+		    done(null, {
+		      accessToken: accessToken,
+		      refreshToken: refreshToken,
+		      profile: profile,
+		  	  username: user.username
+		    });
+		});
+	});
+});
+
+passport.use(fitbitStrategy);
 
 passport.serializeUser(function(user, done) {
 	done(null, user);
@@ -123,8 +155,25 @@ passport.deserializeUser(function(user, done) {
 	done(null, user);
 });
 
+
+var fitbitAuthenticate = passport.authenticate('fitbit', {
+  successRedirect: '/auth/fitbit/success',
+  failureRedirect: '/auth/fitbit/failure'
+});
+
 app.use('/', routes);
 app.use('/users', users);
+
+
+
+app.get('/auth/fitbit', fitbitAuthenticate);
+app.get('/auth/fitbit/callback', fitbitAuthenticate);
+
+app.get('/auth/fitbit/success', function(req, res, next) {
+  
+  console.log(req.user.profile.id);
+  res.redirect('/');
+});
 
 /*
 function autoroute(req, res, next) {
@@ -181,15 +230,18 @@ function onAuthorizeFail(data, message, error, accept){
 io.of('/').on('connection', function(socket) {
 	console.log(socket.request.user.username+' connected');
 	socket.join(socket.request.user.username);
-	Runner.getRunner(socket.request.user.username, function(er, runner) {
-		if (runner && runner.mate) {
-			io.to(runner.mate).emit('matefeedback', {
-				mate: runner,
+	User.findOne({'mate.username': socket.request.user.username}, function(er, user) {
+		console.log('inside find');
+		if (user) {
+			console.log('found');
+			console.log(user.username);
+			io.to(user.username).emit('matefeedback', {
+				mate: user.mate
 			});
 			io.to(socket.request.user.username).emit('statusfeedback', {
-				runstatus: runner.runstatus
+				runstatus: user.runstatus
 			});
-			Runner.getRunner(runner.mate, function(er, themate) {
+			/*Runner.getRunner(runner.mate, function(er, themate) {
 				io.to(socket.request.user.username).emit('matefeedback', {
 					mate: themate,
 				});
@@ -198,7 +250,7 @@ io.of('/').on('connection', function(socket) {
 						runstatus: themate.runstatus
 					});
 				}
-			});
+			});*/
 		}
 	});
 	
@@ -226,13 +278,15 @@ io.of('/').on('connection', function(socket) {
 	});
 	
 	socket.on('mateupdate', function(data) {
-		Runner.findOneAndUpdate({username: socket.request.user.username}, {runstatus: data.status}, 
-			{new: true}, function(err, runner) {
-			io.to(runner.mate).emit('matefeedback', {
-				mate: runner
-			});
-			io.to(runner.username).emit('statusfeedback', {
-				runstatus: data.status
+		console.log('received mate update from '+socket.request.user.username);
+		console.log(data);
+		User.findOneAndUpdate({'mate.username': socket.request.user.username}, {$set: {'mate.runstatus': data.runstatus}}, 
+			{new: true}, function(err, updatereceiver) {
+		    User.update({username: socket.request.user.username}, {$set: {'runstatus': data.runstatus}}, function (err) {
+		    	if (err) console.log(err);
+		    });
+			io.to(updatereceiver.username).emit('matefeedback', {
+				mate: updatereceiver.mate
 			});
 		});
 	});
@@ -242,17 +296,44 @@ io.of('/').on('connection', function(socket) {
 		console.log(data);
 		User.findOne({ username : socket.request.user.username}, function(err, user) {
 			if (user) {
-				console.log('sending message to '+user.matelastrun.matename);
-				io.to(user.matelastrun.matename).emit('mateback', {
-					yourmate: 'isback'
+				console.log('sending message to '+user.mate.username);
+				User.findOne({username: user.mate.username}, function(err, mate) {
+					io.to(user.mate.username).emit('mateback', {
+						results: mate.mate.results
+					});
 				});
 			}
 		});
 	});
 	
 	socket.on('sessiondone', function(data) {
-		console.log(socket.request.user.username);
-		console.log(data);
+		console.log(socket.request.user.username+' is done');
+		User.findOne({username: socket.request.user.username}, function(err, user) {
+			if (err) {console.log(err)};
+			if (user) {
+				user.results = {
+					runcity: "",
+					time: 0, 
+					distance: 0, 
+					notes: ""
+				};
+				user.runcity = "";
+				user.time = 0;
+				user.distance = 0;
+				user.notes = 0;
+				user.mate = {
+					username: "",
+					runcity: "",
+					time: 0,
+					distance: 0,
+					notes: "",
+					runstatus: "Leaving Soon"
+				}
+				user.runstatus = "Leaving Soon";
+				user.active = false;
+				user.save();
+			}
+		});
 	});
 	
 	socket.on('disconnect', function(data) {

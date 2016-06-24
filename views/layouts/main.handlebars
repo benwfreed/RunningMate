@@ -11,53 +11,61 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
         <link rel="stylesheet" href="/vendor/bootstrap/dist/css/bootstrap.min.css">
-        <link rel="stylesheet" href="/vendor/bootstrap/dist/css/bootstrap-theme.min.css">
-		
-		
-        
+        <link rel="stylesheet" href="/vendor/bootstrap/dist/css/bootstrap-theme.min.css">  
     </head>
     <body>
         <!--[if lt IE 7]>
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
-	    <div class="container">
-		
+	 
+		 
+		 {{#unless nocontainer}}<div class="container">{{/unless}}
+		 
 		  <div class="header clearfix">
 		    <nav>
 			  <ul class="nav nav-pills pull-right">
 			    {{#if user}}
 				  <li role="presentation"><a href="/logout">Logout</a></li>
 				{{else}}
+				  
 				{{/if}}
 			  </ul>
 			</nav>
 		  </div>
-        
-            <h1>{{title}}</h1>
-			
-			{{#if success_msg}}
-				<div class="alert alert-success">{{success_msg}}</div>
-			{{/if}}
-			
-			{{#if error_msg}}
-				<div class="alert alert-danger">{{error_msg}}</div>
-			{{/if}}
-			
-			{{#if warning_msg}}
-				<div class="alert alert-warning">{{warning_msg}}</div>
-			{{/if}}
-			
-			{{#if error}}
-				<div class="alert alert-danger">{{error}}</div>
-			{{/if}}
+		  
+		  {{#if title}}<h2>{{title}}</h2>{{/if}}
+        	
+            {{#unless noflash}}
+		    {{#if errors}}
+		    	{{#each errors}}
+		  		<div class="alert alert-danger">{{msg}}</div>
+		  	{{/each}}
+		    {{/if}}
+
+		    {{#if success_msg}}
+		  	<div class="alert alert-success">{{success_msg}}</div>
+		    {{/if}}
+
+		    {{#if error_msg}}
+		  	<div class="alert alert-danger">{{error_msg}}</div>
+		    {{/if}}
+
+		    {{#if warning_msg}}
+		  	<div class="alert alert-warning">{{warning_msg}}</div>
+		    {{/if}}
+
+		    {{#if error}}
+		  	<div class="alert alert-danger">{{error}}</div>
+		    {{/if}}
+			{{/unless}}
             
 		    {{{body}}}
-
+			</div>
 			<hr>
-
+			<div class="container"
 			<footer>
 				<p>&copy; Ben W. Freed</p>
 			</footer>
-	    </div> <!-- /container -->        
+	        {{#unless nocontainer}}</div>{{/unless}}
     </body>
 </html>

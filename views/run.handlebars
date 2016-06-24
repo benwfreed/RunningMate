@@ -8,67 +8,71 @@
   
   <div id="hasMate">
 	  <div class="alert alert-success">You have a runningmate!</div>
-	  <h5>{{user.username}}, your runningmate is <span id="matename"></span>.</h5>
+	  <h5>{{user.username}}, your runningmate is <span id="matename">{{info.mate.username}}</span>.</h5>
 	  <br>
 	  <div class="panel panel-default">
-	   	  <div class="panel-heading"><h4 id="matetitle"></h4></div>
-	 
-		   <div class="panel-body">
-		       <h4><span id="matestatus" class="label label-default"></span></h4>
-			   <br><span id="city" class="details"></span>
-		   	   <br><span id="distance" class="details"></span>
-			   <br><span id="time" class="details"></span>
-			   <br><span id="notes" class="details"></span>
+	   	  <div class="panel-heading"><h4 id="matetitle">{{info.mate.username}}</h4></div>
+		   <div id="runbody" class="panel-body">
+		        <h4><span id="matestatus" class="label label-default">Status: {{info.mate.runstatus}}</span></h4>
+			    {{#if info.mate.runcity}}<br><span id="city" class="details">City: {{info.mate.runcity}}</span>{{/if}}
+		   	    {{#if info.mate.distance}}<br><span id="distance" class="details">Estimated Distance: {{info.mate.distance}} miles</span>{{/if}}
+			    {{#if info.mate.time}}<br><span id="time" class="details">Estimated Run Time: {{info.mate.time}} minutes</span>{{/if}}
+			    {{#if info.mate.notes}}<br><span id="notes" class="details">Notes: {{info.mate.notes}}</span>{{/if}}
 		   </div>
 	  </div>
-	       <span id=statusmessage></span>
+	       <span id="statusmessage">{{info.runstatus}}</span>
 	       <br>
 	       <br>
 	       <button id="statusbutton" class="btn btn-primary">Leaving Now!</button>
 	   </div>
    
-   
+      {{#if info.mate.username}}
 	  <script>
 	    $(function() {
-			$('#hasMate').hide();
-			$('#city').hide();
-			$('#distance').hide();
-			$('#notes').hide();
+			$('#hasMate').show();
+			$('#lacksMate').hide();
 		});
 	  </script>
+	  {{else}}
+	  <script>
+	  	$(function() {
+	  		$('#lacksMate').show();
+			$('#hasMate').hide();
+		});
+	  </script>	
+	  {{/if}}
 
    
 	<script src="/socket.io/socket.io.js"></script>
 	
 	<script>
 	  $(function() {
+	  var status = $('#statusmessage').text();
+	  console.log('connected');
   	  var socket = io('http://localhost:3000');
   	  	  socket.on('matefeedback', function (data) {
   	      	console.log(data);
-			if (data.mate) {
+			if (data.mate.username) {
 			    $('#hasMate').show();
 				$('#lacksMate').hide();
 				$('#matename').text(data.mate.username);
 				$('#matetitle').text(data.mate.username);
-					if(data.mate.city) {
-				        $('#city').text('City: '+data.mate.city);
-					} else {
-						$('#city').text('Location Unknown').show();
-					}
-					if(data.mate.duration) {
-					    $('#time').text('Estimated Run Time: '+data.mate.duration+' mins');
-						
-					}
-					if(data.mate.distance) {
-					    $('#distance').text('Estimated Distance: '+data.mate.distance).show();
-					}
-					if(data.mate.runstatus) {
+					if (data.mate.runstatus) {
 						$('#matestatus').text('Status: '+data.mate.runstatus);
 					}
-					if(data.mate.notes) {
-					    $('#notes').text('Notes: '+data.mate.notes).show();
+					if (data.mate.runcity && $('#city').length === 0) {
+				        $('#runbody').append('<br><span id="city">City: '+data.mate.runcity+'</span>');
+					} 
+					if (data.mate.time && $('#time').length == 0) {
+					    $('#runbody').append('<br><span id="time">Estimated Run Time: '+data.mate.time+' minutes</span>');
 					}
-
+					if (data.mate.distance && $('#distance').length === 0) {
+					    $('#runbody').append('<br><span id="distance">Estimated Distance: '+data.mate.distance+ ' miles</span>');
+					}
+					if (data.mate.notes && $('#notes').length === 0) {
+					    $('#notes').append('<br><span id="notes">Notes: '+data.mate.notes+'</span>');
+					}
+					
 					switch($('#matestatus').text()) {
 						case 'Leaving Soon':
 							$('#matestatus').removeClass('label label-primary')
@@ -90,9 +94,7 @@
 			}
   	      });
 		  
-		  socket.on('statusfeedback', function(data) {
-		  	console.log(data);
-			status = data.runstatus;
+		  var setstatusmessage = function() {
 			switch(status) {
 				case 'Leaving Soon':
 					$('#statusmessage').text('Ready to go? Let your runningmate know.');
@@ -105,24 +107,49 @@
 				case 'Run Completed!':
 					window.location.href = '/giveresults';
 			}
-		  });
+		  }();
 		 
 		  $('#statusbutton').click(function() {
-		  	console.log(status);
 			if (status == 'Leaving Soon') {
 				socket.emit('mateupdate', {
-					status: 'Running Now!'
+					runstatus: 'Running Now!'
 				});
+				status = 'Running Now!';
+				$('#statusmessage').text('Great! Let your mate know when you get back.');
+				$('#statusbutton').text('I\'m Back!');
 			}
-			if (status == 'Running Now!') {
+			else if (status == 'Running Now!') {
 				socket.emit('mateupdate', {
-					status: 'Run Completed!'
+					runstatus: 'Run Completed!'
 				});
+				window.location.href = '/giveresults';
 			}
 			
 		  });
 	  });
 	</script>	
 
+    <script>
+	  var setMessage = function() {
+		switch($('#matestatus').text()) {
+			case 'Leaving Soon':
+				$('#matestatus').removeClass('label label-primary')
+						.removeClass('label label-success')
+						.addClass('label label-default');
+						break;
+			case 'Status: Running Now!':
+				$('#matestatus').removeClass('label label-default')
+						.removeClass('label label-success')
+						.addClass('label label-primary');
+						break;
+			case 'Status: Run Completed!':
+				$('#matestatus').removeClass('label label-primary')
+						.removeClass('label label-default')
+						.addClass('label label-success');
+						break;
+			case '': break;
+		}		
+	  }();
+	</script>
    
    

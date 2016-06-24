@@ -1,33 +1,82 @@
-<h3>Register</h3>
+  <style>
+  	#laceup {
+  		  background: #8A2BE2; /* For browsers that do not support gradients */
+  		  background: -webkit-linear-gradient(left, #8A2BE2 , #7F00FF); /* For Safari 5.1 to 6.0 */
+  		  background: -o-linear-gradient(right, #8A2BE2, #7F00FF); /* For Opera 11.1 to 12.0 */
+  		  background: -moz-linear-gradient(right, #8A2BE2, #7F00FF); /* For Firefox 3.6 to 15 */
+  		  background: linear-gradient(to right, #72587F, #7D26CD); /* Standard syntax */
+  		  color: white;
+  		  margin-top: none;
+  		  martgin-bottom: 5px;
+		  
+	  button {
+	  	width: 125px;
+	  }
+  	}
+	
+	
+  </style>
+  <div id="laceup" class="text-center">
+  <br>
+  <h1>Running Mate</h1>
+
+  <p>Find a remote running buddy. Share your stats.</p>
+  <br>
+  </div>
+  <br>
+  <div class="container">
+  <div class="jumbotron">
+  <div class="text-center">
+  <h3>Register</h3>
   {{#if errors}}
   	{{#each errors}}
-	  <div class="alert alert-danger">{{msg}}</div>
+		<div class="alert alert-danger">{{msg}}</div>
 	{{/each}}
+  {{/if}}
+
+  {{#if success_msg}}
+	<div class="alert alert-success">{{success_msg}}</div>
+  {{/if}}
+
+  {{#if error_msg}}
+	<div class="alert alert-danger">{{error_msg}}</div>
+  {{/if}}
+
+  {{#if warning_msg}}
+	<div class="alert alert-warning">{{warning_msg}}</div>
+  {{/if}}
+
+  {{#if error}}
+	<div class="alert alert-danger">{{error}}</div>
   {{/if}}
   <form class ="form-vertical" id="form_register" name="register" method="post" action="/register">
     <span>username</span>
-    <span>&nbsp</span>
-    <input id="input_newusername" type="text" placeholder="username" name="newusername">
+    <br>
+    <input id="input_newusername" type="text" placeholder="required" name="newusername">
     <br>
     <br>
     <span>password</span> 
-    <span>&nbsp</span>
-    <input id="input_newpassword" type="password" placeholder="password" name="newpassword">
+    <br>
+    <input id="input_newpassword" type="password" placeholder="required" name="newpassword">
     <br>
     <br>
     <span>city</span> 
-    <span>&nbsp</span>
-    <input id="input_city" type="text" placeholder="city" name="city">
+    <br>
+    <input id="input_city" type="text" placeholder="optional" name="city">
     <br>
     <br>
     <span>email</span> 
-    <span>&nbsp</span>
-    <input id="input_email" type="text" placeholder="email" name="email">
+    <br>
+    <input id="input_email" type="text" placeholder="optional" name="email">
     <br>
     <br>
-    <button id="submit_register" type="submit">Go</button>
+    <button id="submit_register" class="btn btn-success" type="submit">Sign Up</button>
 	<br>
 	<br>
   </form>
+  </div>
+  </div>
+  <span>Already have an account? Log in <a href="login">here</a>.</span>
+  </div>
 
-  <span>Already have an account? Login <a href="login">here</a>.</span>
+ 
